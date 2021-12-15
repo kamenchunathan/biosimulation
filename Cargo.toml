@@ -8,9 +8,4 @@ edition = "2018"
 [dependencies]
 configparser = "3.0.0"
 rayon = "1.5.1"
-juice = { version = "0.3.0", default-features = false }
-
-[features]
-default = ["native"]
-native = ["juice/native"]
-opencl = ["juice/opencl"]
+petgraph = "0.6.0"
