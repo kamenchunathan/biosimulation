@@ -20,19 +20,6 @@ enum SensorType {
     Oscillator,
 }
 
-#[derive(Clone, Debug)]
-struct SensorData {
-    id: u32,
-    sensor_type: SensorType,
-}
-
-
-#[derive(Clone, Debug)]
-struct InterNeuronData {
-    id: u32,
-    bias: f64,
-}
-
 #[derive(Clone, Debug, RandGen)]
 enum ActionType {
     MoveX,
@@ -43,18 +30,19 @@ enum ActionType {
 }
 
 #[derive(Clone, Debug)]
-struct ActionData {
-    id: u32,
-    action_type: ActionType,
+enum NeuronType {
+    Sensor(SensorType),
+    InterNeuron(f64),
+    Action(ActionType),
 }
 
 #[derive(Clone, Debug)]
-enum Neuron {
-    Sensor(SensorData),
-    InterNeuron(InterNeuronData),
-    Action(ActionData),
+struct Neuron {
+    id: u32,
+    neuron_type: NeuronType,
 }
 
+// A connection between 2 neurons
 #[derive(Clone, Debug)]
 struct Gene {
     source: Neuron,
@@ -68,36 +56,28 @@ impl Gene {
 
         // only sensor or interneuron can be source
         let source = if rand::random() {
-            Neuron::Sensor(
-                SensorData {
-                    id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
-                    sensor_type: SensorType::generate_random(),
-                }
-            )
+            Neuron {
+                id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
+                neuron_type: NeuronType::Sensor(SensorType::generate_random()),
+            }
         } else {
-            Neuron::InterNeuron(
-                InterNeuronData {
-                    id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
-                    bias: rng.gen(),
-                }
-            )
+            Neuron {
+                id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
+                neuron_type: NeuronType::InterNeuron(rng.gen()),
+            }
         };
 
         // only interneuron or action neuron can be sink
         let sink = if rand::random() {
-            Neuron::Action(
-                ActionData {
-                    id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
-                    action_type: ActionType::generate_random(),
-                }
-            )
+            Neuron {
+                id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
+                neuron_type: NeuronType::Action(ActionType::generate_random()),
+            }
         } else {
-            Neuron::InterNeuron(
-                InterNeuronData {
-                    id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
-                    bias: rng.gen(),
-                }
-            )
+            Neuron {
+                id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
+                neuron_type: NeuronType::InterNeuron(rng.gen()),
+            }
         };
 
         let weight = rng.gen();
