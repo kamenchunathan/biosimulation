@@ -130,12 +130,11 @@ pub struct Agent {
     brain: NeuralNetwork,
 }
 
-impl Default for Agent {
-    fn default() -> Self {
+impl Agent {
+    pub(crate) fn gen_with_random_genes() -> Self {
         let mut rng = thread_rng();
-        let genome_size = rng.gen_range(GENOME_INITIAL_MIN_CONNECTIONS..GENOME_INITIAL_MAX_CONNECTIONS) as u32;
+        let genome_size = rng.gen_range(GENOME_INITIAL_MIN_CONNECTIONS..GENOME_INITIAL_MAX_CONNECTIONS) as usize;
         let genome = (0..genome_size).map(|_| Gene::generate_random()).collect();
-        println!("{:?}", genome);
 
         let brain = NeuralNetwork::from_genome(&genome);
 

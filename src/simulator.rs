@@ -15,7 +15,9 @@ impl Simulator {
         // TODO: Print debug info
         // Create a world
 
-        let mut world = vec![Agent::default(); params.world_size.0 * params.world_size.1];
+        let mut world: Vec<_> = (0..(params.world_size.0 * params.world_size.1))
+            .map(|_| Agent::gen_with_random_genes())
+            .collect();
 
         // Iterate over all organisms in the world
         // Main loop
