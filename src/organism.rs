@@ -1,5 +1,17 @@
+use rand;
+use rand::{thread_rng, Rng};
+
+use rand_derive2::RandGen;
+
+
+// TODO: Move these constants to a config option
+const GENOME_INITIAL_MIN_SIZE: u32 = 2;
+const GENOME_INITIAL_MAX_SIZE: u32 = 20;
+const GENOME_INITIAL_MIN_CONNECTIONS: u32 = 1;
+const GENOME_INITIAL_MAX_CONNECTIONS: u32 = 20;
+
 // ------------------------ ORGANISM GENOME --------------------------------
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, RandGen)]
 enum SensorType {
     LocationX,
     LocationY,
@@ -21,7 +33,7 @@ struct InterNeuronData {
     bias: f64,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, RandGen)]
 enum ActionType {
     MoveX,
     MoveY,
@@ -51,21 +63,49 @@ struct Gene {
 }
 
 impl Gene {
-    fn random() -> Self {
-        Self {
-            source: Neuron::Sensor(
+    fn generate_random() -> Self {
+        let mut rng = thread_rng();
+
+        // only sensor or interneuron can be source
+        let source = if rand::random() {
+            Neuron::Sensor(
                 SensorData {
-                    id: 0,
-                    sensor_type: SensorType::Random
+                    id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
+                    sensor_type: SensorType::generate_random(),
                 }
-            ),
-            sink: Neuron::Action(
-                ActionData{
-                    id: 1,
-                    action_type: ActionType::MoveRandom
+            )
+        } else {
+            Neuron::InterNeuron(
+                InterNeuronData {
+                    id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
+                    bias: rng.gen(),
                 }
-            ),
-            weight: 0.0,
+            )
+        };
+
+        // only interneuron or action neuron can be sink
+        let sink = if rand::random() {
+            Neuron::Action(
+                ActionData {
+                    id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
+                    action_type: ActionType::generate_random(),
+                }
+            )
+        } else {
+            Neuron::InterNeuron(
+                InterNeuronData {
+                    id: rng.gen_range(GENOME_INITIAL_MIN_SIZE..GENOME_INITIAL_MAX_SIZE),
+                    bias: rng.gen(),
+                }
+            )
+        };
+
+        let weight = rng.gen();
+
+        Self {
+            source,
+            sink,
+            weight,
         }
     }
 }
@@ -92,7 +132,11 @@ pub struct Agent {
 
 impl Default for Agent {
     fn default() -> Self {
-        let genome = vec![Gene::random()];
+        let mut rng = thread_rng();
+        let genome_size = rng.gen_range(GENOME_INITIAL_MIN_CONNECTIONS..GENOME_INITIAL_MAX_CONNECTIONS) as u32;
+        let genome = (0..genome_size).map(|_| Gene::generate_random()).collect();
+        println!("{:?}", genome);
+
         let brain = NeuralNetwork::from_genome(&genome);
 
         Self {
