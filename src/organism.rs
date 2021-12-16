@@ -1,18 +1,23 @@
+use std::collections::{HashMap, HashSet};
+use std::fmt;
+use petgraph::graph::NodeIndex;
+use petgraph::Graph;
 use rand;
 use rand::{thread_rng, Rng};
 
 use rand_derive2::RandGen;
+use crate::visualize::visualize_nnet;
 
 
 // TODO: Move these constants to a config option
 const GENOME_INITIAL_MIN_SIZE: u32 = 2;
 const GENOME_INITIAL_MAX_SIZE: u32 = 20;
 const GENOME_INITIAL_MIN_CONNECTIONS: u32 = 1;
-const GENOME_INITIAL_MAX_CONNECTIONS: u32 = 20;
+const GENOME_INITIAL_MAX_CONNECTIONS: u32 = 10;
 
 // ------------------------ ORGANISM GENOME --------------------------------
 #[derive(Clone, Debug, RandGen)]
-enum SensorType {
+pub(crate) enum SensorType {
     LocationX,
     LocationY,
     Age,
@@ -21,7 +26,7 @@ enum SensorType {
 }
 
 #[derive(Clone, Debug, RandGen)]
-enum ActionType {
+pub(crate) enum ActionType {
     MoveX,
     MoveY,
     MoveForward,
@@ -30,10 +35,28 @@ enum ActionType {
 }
 
 #[derive(Clone, Debug)]
-enum NeuronType {
+pub(crate) enum NeuronType {
     Sensor(SensorType),
-    InterNeuron(f64),
+    InterNeuron(f32),
     Action(ActionType),
+}
+
+impl NeuronType {
+    fn get_output(&self) -> f32 {
+        // TODO: Complete implementation
+        match self {
+            NeuronType::Sensor(sensor_type) => 0.0,
+            NeuronType::InterNeuron(bias) => 0.0,
+            NeuronType::Action(action_type) => 0.0,
+        }
+    }
+}
+
+// required for changing into a string used by graphviz to display string
+impl fmt::Display for NeuronType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -95,13 +118,50 @@ type Genome = Vec<Gene>;
 // ------------------------ ORGANISM BRAIN ---------------------------------
 //  A neural network representing how the organism is able to make decisions on where to go
 #[derive(Clone, Debug)]
-struct NeuralNetwork;
+pub(crate) struct NeuralNetwork(pub(crate) Graph<NeuronType, f32>);
 
 impl NeuralNetwork {
-    pub fn from_genome(_genome: &Genome) -> Self {
-        Self
+    fn from_genome(genome: &Genome) -> Self {
+        let mut nnet_graph = Graph::<NeuronType, f32>::new();
+        let mut node_index_lookup = HashMap::<u32, NodeIndex>::new();
+
+        // add nodes
+        let neuron_list = get_neuron_list(genome);
+        for neuron in neuron_list {
+            node_index_lookup.insert(neuron.id, nnet_graph.add_node(neuron.neuron_type.clone()));
+        }
+
+        // connections
+        for gene in genome {
+            nnet_graph.add_edge(
+                *node_index_lookup.get(&gene.source.id).unwrap(),
+                *node_index_lookup.get(&gene.sink.id).unwrap(),
+                gene.weight
+            );
+        }
+
+        Self(nnet_graph)
     }
 }
+
+
+// helper methods in converting genome to neural network
+fn get_neuron_list(genome: &Genome) -> Vec<&Neuron> {
+    let mut uniq = Vec::<&Neuron>::new();
+    let mut ids = HashSet::<u32>::new();
+
+    for gene in genome {
+        [&gene.source, &gene.sink].map(|neuron| {
+            if !ids.contains(&neuron.id) {
+                ids.insert((neuron.id));
+                uniq.push(neuron);
+            }
+        });
+    }
+
+    uniq
+}
+
 
 // ------------------------------- ORGANISM  -------------------------------
 #[derive(Clone, Debug)]
@@ -117,6 +177,8 @@ impl Agent {
         let genome = (0..genome_size).map(|_| Gene::generate_random()).collect();
 
         let brain = NeuralNetwork::from_genome(&genome);
+
+        visualize_nnet(&brain);
 
         Self {
             genome,

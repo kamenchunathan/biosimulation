@@ -1,5 +1,6 @@
 mod simulator;
 mod organism;
+mod visualize;
 
 use configparser::ini::Ini;
 use std::error::Error;
