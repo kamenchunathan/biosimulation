@@ -15,7 +15,7 @@ impl Simulator {
         // TODO: Print debug info
         // Create a world
 
-        let mut world: Vec<_> = (0..(params.world_size.0 * params.world_size.1))
+        let mut population: Vec<_> = (0..(params.world_size.0 * params.world_size.1))
             .map(|_| Agent::gen_with_random_genes())
             .collect();
 
@@ -23,9 +23,9 @@ impl Simulator {
         // Main loop
         for _sim in 0..params.num_sims {
             for _sim_step in 0..params.steps_per_sim {
-                let new_world = world.into_par_iter().map(|agent| agent).collect();
+                let new_world = population.into_par_iter().map(|agent| agent).collect();
                 // TODO: Do some processing e.g. tracking states
-                world = new_world;
+                population = new_world;
             }
         }
     }
