@@ -8,6 +8,23 @@ use rand::{thread_rng, Rng};
 use rand_derive2::RandGen;
 use crate::visualize::visualize_nnet;
 
+// TODO:
+//              --------->>  START HERE NEXT TIME <<---------
+//  Major problem how im inserting neurons into the genome and handling conversion of gene to
+//  Neural network causes some sensor neurons to have incoming connections and Action Neurons
+//  to have outgoing connections which is not ideal
+//  .
+//  1. Extract Neuron and gene structs into separate module
+//  2. Create multiple alternative ways of initializing a genome e.g. full random chance, from
+//   stub/ template
+//  3. Create trackers the statistical characteristics of the genes e.g. level of
+//   connectedness, avg. num of nodes between sensors and action nodes, & other graph xtics
+//   and see which of these characteristics provided by the different algorithms provide the best
+//   chances of success in the solution space
+//  4. Create tests to ensure gene is initialized as intended e.g. contains no action neurons
+//   with outputs. Or look into alternative ways of handling defective genes for example being
+//   very lenient and trying to create a most probable working nnet or just pause and stop there
+
 
 // TODO: Move these constants to a config option
 const GENOME_INITIAL_MIN_SIZE: u32 = 2;

@@ -6,6 +6,7 @@ use image::{DynamicImage, ImageResult};
 use petgraph::graph::Graph;
 use petgraph::dot::{Dot, Config};
 use rand::{Rng, thread_rng};
+
 use crate::organism::NeuralNetwork;
 
 pub(crate) fn visualize_nnet(nnet: &NeuralNetwork) {
